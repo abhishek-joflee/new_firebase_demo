@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as dev;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+import 'firebase_options.dart';
 
 extension on Object {
   void log() {
@@ -42,12 +45,35 @@ extension on User {
 }
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  runZonedGuarded<Future<void>>(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
 
-  runApp(const MyApp());
+    FirebaseCrashlytics.instance.setCustomKey('str_key', 'hello');
+    FirebaseCrashlytics.instance.setUserIdentifier("12345");
+
+    // if (kReleaseMode) {
+    if (true) {
+      FlutterError.onError =
+          FirebaseCrashlytics.instance.recordFlutterFatalError;
+    }
+    runApp(const MyApp());
+  }, (error, stack) {
+    // if (kReleaseMode) {
+    if (true) {
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stack,
+        fatal: true,
+        reason: 'a non-fatal error',
+        information: [
+          'further diagnostic information about the error could be here',
+          'version 2.0'
+        ],
+      );
+    }
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -147,6 +173,15 @@ class _MyHomePageState extends State<MyHomePage> {
             TextButton(
               onPressed: _signOut,
               child: const Text('Sign out'),
+            ),
+            TextButton(
+              onPressed: () {
+                FirebaseCrashlytics.instance
+                    .log("This is test message before exception thrown !");
+                throw Exception(
+                    'This is a test exception to test firebase crashlytics.');
+              },
+              child: const Text("Throw Test Exception"),
             ),
           ],
         ),
