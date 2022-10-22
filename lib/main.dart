@@ -5,6 +5,7 @@ import 'dart:developer' as dev;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -53,6 +54,13 @@ Future<void> main() async {
 
     FirebaseCrashlytics.instance.setCustomKey('str_key', 'hello');
     FirebaseCrashlytics.instance.setUserIdentifier("12345");
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) {
+      'app startup and whenever a new token is generated'.log();
+      fcmToken.log();
+    }).onError((err) {
+      err.log();
+    });
 
     if (kReleaseMode) {
       // if (true) {
