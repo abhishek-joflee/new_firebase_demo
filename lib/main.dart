@@ -13,6 +13,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 
 extension on Object {
+  // this comment added from project opened in github.dev vscode
   void log() {
     dev.log(toString());
   }
